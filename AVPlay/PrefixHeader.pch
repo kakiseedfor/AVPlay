@@ -1,0 +1,64 @@
+//
+//  PrefixHeader.pch
+//  Audio and Video Play
+//
+//  Created by kakiYen on 2019/8/21.
+//  Copyright © 2019 kakiYen. All rights reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#import "NSObject+KVOObject.h"
+
+#define GLSL_To_CString(string) #string
+#define GLSL_To_String(string) @GLSL_To_CString(string)
+
+#ifndef weakify
+    #if DEBUG
+        #if __has_feature(objc_arc)
+        #define weakify(object) autoreleasepool{} __weak __typeof__(object) weak##_##object = object;
+        #else
+        #define weakify(object) autoreleasepool{} __block __typeof__(object) block##_##object = object;
+        #endif
+    #else
+        #if __has_feature(objc_arc)
+        #define weakify(object) try{} @finally{} {} __weak __typeof__(object) weak##_##object = object;
+        #else
+        #define weakify(object) try{} @finally{} {} __block __typeof__(object) block##_##object = object;
+        #endif
+    #endif
+#endif
+
+#ifndef strongify
+    #if DEBUG
+        #if __has_feature(objc_arc)
+        #define strongify(object) autoreleasepool{} __typeof__(object) object = weak##_##object;
+        #else
+        #define strongify(object) autoreleasepool{} __typeof__(object) object = block##_##object;
+        #endif
+    #else
+        #if __has_feature(objc_arc)
+        #define strongify(object) try{} @finally{} __typeof__(object) object = weak##_##object;
+        #else
+        #define strongify(object) try{} @finally{} __typeof__(object) object = block##_##object;
+        #endif
+    #endif
+#endif
+
+#define BundleWithPath(filePath) [NSBundle.mainBundle pathForResource:filePath.stringByDeletingPathExtension ofType:filePath.pathExtension]
+
+#define BundleWithAllResource [NSBundle.mainBundle pathsForResourcesOfType:nil inDirectory:@"Resource"]
+
+#define ClassName(arg) [NSString stringWithCString:class_getName(arg) encoding:NSUTF8StringEncoding]
+
+#define TopViewController ((UINavigationController *)UIApplication.sharedApplication.keyWindow.rootViewController).topViewController
+
+#define CachesDirectory [NSFileManager.defaultManager URLsForDirectory:NSCachesDirectory inDomains:NSUserDomainMask].firstObject
+
+#define InCachesDirectory(arg) [CachesDirectory.resourceSpecifier stringByAppendingString:arg]
+
+#endif /* PrefixHeader_pch */

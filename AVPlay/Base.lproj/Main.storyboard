@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="k0B-W9-63f">
+    <device id="retina6_1" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Navigation Controller-->
+        <scene sceneID="DGs-pv-Mei">
+            <objects>
+                <navigationController id="k0B-W9-63f" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="Onv-OX-ah6">
+                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="iaa-gy-Oj3"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="of9-7c-VjR" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-599" y="-36"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="HvV-5x-sJj">
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="WEl-0O-lMB"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="IaC-dA-OWA"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="HvV-5x-sJj" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="CBP-i6-4FZ"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="HvV-5x-sJj" secondAttribute="bottom" id="JkQ-Ow-CAk"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="HvV-5x-sJj" secondAttribute="trailing" id="aR1-pt-jfP"/>
+                            <constraint firstItem="HvV-5x-sJj" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="u0g-Rs-Dcq"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="m40-Ib-gd5">
+                        <barButtonItem key="rightBarButtonItem" title="录制" id="BkR-6m-qeP">
+                            <connections>
+                                <action selector="recordAction:" destination="BYZ-38-t0r" id="d1E-om-u4O"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="recordBtn" destination="BkR-6m-qeP" id="Ude-cB-02s"/>
+                        <outlet property="tableView" destination="HvV-5x-sJj" id="BCd-LM-jJS"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="403" y="-36"/>
+        </scene>
+        <!--Play View Controller-->
+        <scene sceneID="qJ0-Da-Oze">
+            <objects>
+                <viewController storyboardIdentifier="AVPlayViewController" id="77y-1n-2CX" customClass="AVPlayViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Uf3-PQ-HoN">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7I2-dd-pqR">
+                                <rect key="frame" x="234" y="44" width="180" height="200"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="200" id="cBJ-SS-dcp"/>
+                                    <constraint firstAttribute="width" constant="180" id="mP4-xq-VXs"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="7I2-dd-pqR" firstAttribute="top" secondItem="Pe7-6p-VfT" secondAttribute="top" id="3al-da-XEi"/>
+                            <constraint firstItem="Pe7-6p-VfT" firstAttribute="trailing" secondItem="7I2-dd-pqR" secondAttribute="trailing" id="8q1-Fs-8rF"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="Pe7-6p-VfT"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="XO2-jt-TtH">
+                        <barButtonItem key="rightBarButtonItem" title="关闭" id="DCL-1i-E1f">
+                            <connections>
+                                <action selector="optionAction:" destination="77y-1n-2CX" id="YzK-iY-93S"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="optionBtn" destination="DCL-1i-E1f" id="uVB-Mn-i8R"/>
+                        <outlet property="playView" destination="7I2-dd-pqR" id="5Kq-JG-TSh"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="JG1-jh-4AU" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1245" y="-36"/>
+        </scene>
+        <!--Record View Controller-->
+        <scene sceneID="85t-Vh-ml8">
+            <objects>
+                <viewController storyboardIdentifier="AVRecordViewController" id="Sgy-VD-dpq" customClass="AVRecordViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="YBw-AX-ogz">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <viewLayoutGuide key="safeArea" id="Zqw-ob-cHg"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="4MH-MF-82K">
+                        <barButtonItem key="rightBarButtonItem" title="开始" id="zTB-AJ-Rve">
+                            <connections>
+                                <action selector="optionAction:" destination="Sgy-VD-dpq" id="6LY-WS-cxi"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="optionBtn" destination="zTB-AJ-Rve" id="ctB-Mx-9oV"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SjH-Ro-qaM" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2171" y="-36"/>
+        </scene>
+    </scenes>
+</document>
