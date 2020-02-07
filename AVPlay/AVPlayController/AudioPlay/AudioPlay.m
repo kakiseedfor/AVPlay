@@ -469,6 +469,7 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     
     /*
      音频刚开始启动时，回调这个方法的时候音频表还有可能未完全启动起来。[否则会造成自定义的信号量死锁]
+     这种情况说明AUGraphStart状态还未回调。
      */
     Boolean isRuning;
     VerifyStatus(AUGraphIsRunning(_auGraph, &isRuning), @"Could not get AUGraph status", YES);
