@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VideoPreview : UIView
 
-- (void)reStartRender:(CVImageBufferRef)imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo isfrontCamera:(BOOL)isfrontCamera isFullRange:(BOOL)isFullRange;
+- (void)restartRender:(CVImageBufferRef)imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo isfrontCamera:(BOOL)isfrontCamera isFullRange:(BOOL)isFullRange;
 
 - (void)startRender:(CVImageBufferRef)imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo isfrontCamera:(BOOL)isfrontCamera isFullRange:(BOOL)isFullRange;
 

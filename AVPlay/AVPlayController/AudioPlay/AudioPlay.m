@@ -6,6 +6,7 @@
 //  Copyright © 2019 kakiYen. All rights reserved.
 //
 
+#import "NSDate+String.h"
 #import "AudioSession.h"
 #import "AudioPlay.h"
 
@@ -19,10 +20,11 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     AudioConverterRef _converterRef;
     ExtAudioFileRef _extRef;
     uint8_t *_packetBuffer;
+    uint8_t *_PCMBuffer;
     SInt16 *_bufferData;
     AUGraph _auGraph;
 }
-@property (strong, nonatomic) dispatch_semaphore_t semaphore;
+@property (strong, nonatomic) dispatch_semaphore_t semaphore;   //貌似有先来后到的意思
 @property (strong, nonatomic) dispatch_queue_t dispatchQueue;
 @property (weak, nonatomic) id<AudioRenderProtocol> delegate;
 @property (nonatomic) AUNode ioNode;
@@ -32,11 +34,15 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 @property (nonatomic) UInt32 channel;
 @property (nonatomic) UInt32 bufferSize;
 @property (nonatomic) UInt32 packetSize;
+@property (nonatomic) UInt32 PCMBufferSize;
 @property (nonatomic) double sampleRate;
 @property (nonatomic) BOOL openRecord;
 @property (nonatomic) AudioPlayStatus playStatus;
 @property (nonatomic) AudioEncodeStatus encodeStatus;
 @property (nonatomic) AudioSampleFormat sampleFormat;
+
+@property (strong, nonatomic) NSFileHandle *encodeFileHandle;
+@property (strong, nonatomic) NSFileHandle *PCMFileHandle;
 
 @end
 
@@ -95,7 +101,7 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
             [self openAudioRecord];
             break;
         case Audio_Encode_Type:
-            [self openAudioEncode];
+            [self openAudioEncode:filePath];
             break;
         case Audio_PlayWithFile_Type:
             category = AVAudioSessionCategoryPlayback;
@@ -266,12 +272,19 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     }
 }
 
-- (void)openAudioEncode{
-    AudioStreamBasicDescription inputASBD;  //可能需要转换
-    UInt32 asdbSize = sizeof(inputASBD);
-    memset(&inputASBD, 0, asdbSize);
-    AudioUnit formatUnit = [self getAudioUnit:_formatNode errorMSG:@"Could not get formatUnit in AUGraph"];
-    AudioUnitGetProperty(formatUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &inputASBD, &asdbSize);
+- (void)openAudioEncode:(NSString *)filePath{
+    _PCMFileHandle = [NSFileHandle fileHandleForReadingAtPath:filePath];
+    if (!_PCMFileHandle) {
+        NSLog(@"Could not found the file with %@",filePath);
+        return;
+    }
+    
+    [self initialFilePath];
+    if (!_encodeFileHandle) {
+        return;
+    }
+    
+    AudioStreamBasicDescription inputASBD = InterleavedPCM_ASBD(_sampleRate, kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked, sizeof(SInt16), _channel);
     
     AudioStreamBasicDescription outputASBD = MPEG4AAC_ASBD(inputASBD.mSampleRate, inputASBD.mChannelsPerFrame);
     
@@ -287,7 +300,7 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     //具有MPEG4AAC编码的编码器个数
     UInt32 countOfMPEG4AAC = sizeOfMPEG4AAC / sizeof(AudioClassDescription);
     AudioClassDescription acds[countOfMPEG4AAC];
-    VerifyStatus(AudioFormatGetProperty(kAudioFormatProperty_Encoders, sizeof(mType), &mType, &countOfMPEG4AAC, acds), @"Fail to Get Audio Format Property", NO);
+    VerifyStatus(AudioFormatGetProperty(kAudioFormatProperty_Encoders, sizeof(mType), &mType, &sizeOfMPEG4AAC, acds), @"Fail to Get Audio Format Property", NO);
     
     AudioClassDescription acd;
     for (UInt32 i = 0; i < countOfMPEG4AAC; i++) {
@@ -318,7 +331,7 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     UInt32 packetSizeof = sizeof(_packetSize);
     AudioConverterGetProperty(_converterRef, kAudioConverterPropertyMaximumOutputPacketSize, &packetSizeof, &_packetSize);
     
-    _packetBuffer = malloc(_packetSize * sizeof(uint8_t));
+    _packetBuffer = calloc(1, _packetSize * sizeof(uint8_t));
     _encodeStatus = Audio_Encode_Opened;
 }
 
@@ -454,6 +467,15 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
         return noErr;
     }
     
+    /*
+     音频刚开始启动时，回调这个方法的时候音频表还有可能未完全启动起来。[否则会造成自定义的信号量死锁]
+     */
+    Boolean isRuning;
+    VerifyStatus(AUGraphIsRunning(_auGraph, &isRuning), @"Could not get AUGraph status", YES);
+    if (!isRuning) {
+        return noErr;
+    }
+    
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     if (_playStatus == Audio_Play_Closed) {
         dispatch_semaphore_signal(_semaphore);
@@ -463,9 +485,9 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     for (UInt32 i = 0; i < ioData->mNumberBuffers; i++) {
         AudioBuffer buffer = ioData->mBuffers[i];
         if (_bufferSize < buffer.mDataByteSize) {
+            _bufferData = realloc(_bufferData, buffer.mDataByteSize - _bufferSize);
+            memset(_bufferData, 0, buffer.mDataByteSize - _bufferSize);
             _bufferSize = buffer.mDataByteSize;
-            _bufferData = realloc(_bufferData, _bufferSize);
-            memset(_bufferData, 0, _bufferSize);
         }
         
         ![self.delegate respondsToSelector:@selector(retrieveCallback:numberFrames:numberChannels:)] ? : [self.delegate retrieveCallback:_bufferData numberFrames:inNumberFrames numberChannels:_channel];
@@ -505,18 +527,40 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 
 - (OSStatus)inInputDataProc:(AudioConverterRef)inAudioConverter ioNumberDataPackets:(UInt32 *)ioNumberDataPackets ioData:(AudioBufferList *)ioData
 {
-    OSStatus status = noErr;
-    return status;
+    UInt32 numberOfPackets = *ioNumberDataPackets;
+    /*
+     总数据包大小 = 数据包个数 * 频道数 * 量化格式大小.
+     PS：因为输入的PCM数据是交错型存储的
+     */
+    UInt32 PCMBufferSize = numberOfPackets * _channel * sizeof(SInt16);
+    if (_PCMBufferSize < PCMBufferSize) {
+        _PCMBuffer = realloc(_PCMBuffer, PCMBufferSize - _PCMBufferSize);
+        memset(_PCMBuffer, 0, PCMBufferSize - _PCMBufferSize);
+        _PCMBufferSize = PCMBufferSize;
+    }
+    
+    /*
+     If your callback returns an error, it must return zero packets of data.
+     */
+    NSData *data = [_PCMFileHandle readDataOfLength:PCMBufferSize];
+    if (data.length <= 0) {
+        *ioNumberDataPackets = 0;
+        return -1;
+    }
+    
+    memcpy(_PCMBuffer, data.bytes, data.length);
+    ioData->mBuffers[0].mNumberChannels = _channel;
+    ioData->mBuffers[0].mDataByteSize = (UInt32)data.length;
+    ioData->mBuffers[0].mData = _PCMBuffer;
+    ioData->mNumberBuffers = 1;
+    *ioNumberDataPackets = 1 ;
+    
+    return noErr;
 }
 
 /*
  @param filePath    You should set the field when use Audio_PlayWithFile_Type.
  */
-- (void)reStartAudio:(AudioPlayType)playType filePath:(NSString *_Nullable)filePath{
-    _playStatus = Audio_Play_UnOpen;
-    [self startAudio:playType filePath:filePath];
-}
-
 - (void)startAudio:(AudioPlayType)playType filePath:(NSString *_Nullable)filePath
 {
     HasAuthorization(AVMediaTypeAudio, ^(BOOL granted) {
@@ -525,10 +569,10 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
             dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
             switch (self.playStatus) {
                 case Audio_Play_Opened:
-                case Audio_Play_Closed:
                     dispatch_semaphore_signal(self.semaphore);
                     return;
                 case Audio_Play_UnOpen:
+                case Audio_Play_Closed:
                     [self openAudio:playType filePath:filePath];
                     break;
                 default:
@@ -540,42 +584,73 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
             
             Boolean isInitial = false;
             isRuning ? : VerifyStatus(AUGraphIsInitialized(self->_auGraph, &isInitial), @"Could not Initialized AUGraph", NO);
-            dispatch_semaphore_signal(self.semaphore);
             
+            /*
+             any activities that affect the state of the graph are guarded with locks
+             任意会影响音频表对象的状态的行为都会被加锁。
+             */
             !isInitial ? : VerifyStatus(AUGraphStart(self->_auGraph), @"Could not start AUGraph", NO);
+            
+            dispatch_semaphore_signal(self.semaphore);
         });
     });
 }
 
-- (void)startAudioEncode{
+- (void)restartAudioEncode:(NSString *)filePath{
+    _encodeStatus = Audio_Encode_UnOpen;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [self startAudioEncode:filePath];
+    });
+}
+
+- (void)startAudioEncode:(NSString *)filePath{
+    dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     switch (_encodeStatus) {
-        case Audio_Encode_UnOpen:
-            [self openAudioEncode];
-            break;
-        case Audio_Encode_Closed:
+        case Audio_Encode_Opened:   //防止重复开启音频编码
+        case Audio_Encode_Closed:   //已关闭后只能重新开启restart
+            dispatch_semaphore_signal(_semaphore);
             return;
+        case Audio_Encode_UnOpen:
+            [self openAudio:Audio_Encode_Type filePath:filePath];
+            break;
         default:
             break;
     }
+    dispatch_semaphore_signal(_semaphore);
     
     if (_encodeStatus != Audio_Encode_Opened) {
         return;
     }
     
-    AudioBufferList packetBufferList = {1};
-    packetBufferList.mBuffers[0].mNumberChannels = _channel;
-    packetBufferList.mBuffers[0].mDataByteSize = _packetSize;
-    packetBufferList.mBuffers[0].mData = _packetBuffer;
-    UInt32 ioOutputDataPacketSize = 1;
-    VerifyStatus(AudioConverterFillComplexBuffer(_converterRef, InInputDataProc, (__bridge void *)self, &ioOutputDataPacketSize, &packetBufferList, NULL), @"Could not exec Audio Converter Fill ComplexBuffer", NO);
-    
-    if (!packetBufferList.mBuffers[0].mDataByteSize) {
-        return;
+    while (true) {
+        dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+        if (_encodeStatus != Audio_Encode_Opened) {
+            dispatch_semaphore_signal(_semaphore);
+            break;
+        }
+        
+        AudioBufferList packetBufferList = {0};
+        packetBufferList.mNumberBuffers = 1;
+        packetBufferList.mBuffers[0].mNumberChannels = _channel;
+        packetBufferList.mBuffers[0].mDataByteSize = _packetSize;
+        packetBufferList.mBuffers[0].mData = _packetBuffer;
+        UInt32 ioOutputDataPacketSize = 1;
+        VerifyStatus(AudioConverterFillComplexBuffer(_converterRef, InInputDataProc, (__bridge void *)self, &ioOutputDataPacketSize, &packetBufferList, NULL), @"Could not exec Audio Converter Fill ComplexBuffer or Completed!", NO);
+        
+        if (!packetBufferList.mBuffers[0].mDataByteSize) {
+            dispatch_semaphore_signal(_semaphore);
+            [self closeAudioPaly];
+            break;
+        }
+        
+        NSData *pcmEncodeData = [NSData dataWithBytes:_packetBuffer length:packetBufferList.mBuffers[0].mDataByteSize];
+        NSData *adtsData = [self appendADTSWithPakcetLength:pcmEncodeData.length];
+        NSMutableData *completeData = [NSMutableData dataWithData:adtsData];
+        [completeData appendData:pcmEncodeData];
+        
+        [_encodeFileHandle writeData:completeData];
+        dispatch_semaphore_signal(_semaphore);
     }
-    
-    NSMutableData *pcmData = [NSMutableData dataWithBytes:_packetBuffer length:packetBufferList.mBuffers[0].mDataByteSize];
-    NSData *adtsData = [self appendADTSWithPakcetLength:pcmData.length];
-    [pcmData appendData:adtsData];
 }
 
 - (NSData *)appendADTSWithPakcetLength:(NSUInteger)length{
@@ -584,16 +659,17 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     uint8_t profile = 2;    //kMPEG4Object_AAC_LC
     uint8_t sampleIndex = 4;    //44.1KHz
     uint8_t channelConfig = _channel;   //声道配置
-    
-    uint8_t *adtsData = malloc(adtsLength * sizeof(uint8_t));
+
+    uint8_t *adtsData = calloc(1, adtsLength * sizeof(uint8_t));
     adtsData[0] = 0xFF; //syncword
     adtsData[1] = 0xF9; //syncword MPEG-2 Layer CRC
     adtsData[2] = ((profile - 1) << 6) + (sampleIndex << 2) + (channelConfig >> 2);
-    adtsData[3] = (channelConfig & 3 << 6) + (sumLength >> 11);
+    adtsData[3] = ((channelConfig & 3) << 6) + (sumLength >> 11);
     adtsData[4] = (sumLength & 0x07FF) >> 3;
     adtsData[5] = ((sumLength & 7) << 5) + 0x1F;
     adtsData[6] = 0xFC;
-    return [NSData dataWithBytes:adtsData length:adtsLength];
+
+    return [NSData dataWithBytesNoCopy:adtsData length:adtsLength];
 }
 
 - (void)pauseAudioPaly{
@@ -602,18 +678,18 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 }
 
 - (void)closeAudioPaly{
-    //未打开或已关闭直接返回
-    if (_playStatus == Audio_Play_UnOpen || _playStatus == Audio_Play_Closed) {
+    //已关闭直接返回
+    if (_playStatus == Audio_Play_Closed) {
         return;
     }
     
+    dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     //设置正在关闭状态
     _playStatus = Audio_Play_Closed;
     _encodeStatus = Audio_Encode_Closed;
-    dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     
-    Boolean isRuning;
-    VerifyStatus(AUGraphIsRunning(_auGraph, &isRuning), @"Could not get AUGraph status", YES);
+    Boolean isRuning = NO;
+    !_auGraph ? : VerifyStatus(AUGraphIsRunning(_auGraph, &isRuning), @"Could not get AUGraph status", YES);
     if (isRuning) {
         VerifyStatus(AUGraphStop(_auGraph), @"Could not stop AUGraph", YES);
         VerifyStatus(AUGraphUninitialize(_auGraph), @"Could not cancle initialize AUGraph", YES);
@@ -623,13 +699,20 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
         !_formatNode ? : VerifyStatus(AUGraphRemoveNode(_auGraph, _formatNode), @"Could not remove formatNode", YES);
         !_mixerNode ? : VerifyStatus(AUGraphRemoveNode(_auGraph, _mixerNode), @"Could not remove mixerNode", YES);
         !_extRef ? : VerifyStatus(ExtAudioFileDispose(_extRef), @"Could not Dispose Ext Audio File", YES);
-        VerifyStatus(DisposeAUGraph(_auGraph), @"Could not Dispose AUGraph", YES);
         !_converterRef ? : VerifyStatus(AudioConverterDispose(_converterRef), @"Could not Dispose Audio Converter", YES);
+        VerifyStatus(DisposeAUGraph(_auGraph), @"Could not Dispose AUGraph", YES);
     }
+    [_encodeFileHandle closeFile];
+    [_PCMFileHandle closeFile];
+    
     !_packetBuffer ? : free(_packetBuffer);
     !_bufferData ? : free(_bufferData);
+    !_PCMBuffer ? : free(_PCMBuffer);
     _packetBuffer = NULL;
     _bufferData = NULL;
+    _PCMBuffer = NULL;
+    _PCMBufferSize = 0;
+    _packetSize = 0;
     _bufferSize = 0;
     _ioNode = 0;
     _fileNode = 0;
@@ -638,6 +721,31 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     
     dispatch_semaphore_signal(_semaphore);
     NSLog(@"Close AudioPaly success!");
+}
+
+#pragma mark - 临时处理
+
+- (void)initialFilePath{
+    NSString *filePath = InCachesDirectory(@"Record");
+    if (![NSFileManager.defaultManager fileExistsAtPath:filePath]) {
+        NSError *error = nil;
+        if (![NSFileManager.defaultManager createDirectoryAtPath:filePath withIntermediateDirectories:NO attributes:nil error:&error]) {
+            NSLog(@"Attempt to Create a Director or file fail while begin to encode preview!");
+            return;
+        }
+    }
+    
+    filePath = [filePath stringByAppendingFormat:@"/%@.aac",NSDate.date.formatToString];
+    if (![NSFileManager.defaultManager createFileAtPath:filePath contents:nil attributes:nil]) {
+        NSLog(@"Attempt to Create a Director or file fail while begin to encode preview!");
+        return;
+    }
+    
+    _encodeFileHandle = [NSFileHandle fileHandleForWritingAtPath:filePath];
+    if (!_encodeFileHandle) {
+        NSLog(@"Attempt to Create a Director or file fail while begin to encode preview!");
+        return;
+    }
 }
 
 @end

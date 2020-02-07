@@ -112,7 +112,7 @@
     self.status = OpenedVideoPlay;
 }
 
-- (void)reStartRender:(Video_Frame *)videoFrame width:(int)pixelWidth height:(int)pixelHeight{
+- (void)restartRender:(Video_Frame *)videoFrame width:(int)pixelWidth height:(int)pixelHeight{
     _status = UnOpenVideoPlay;
     [self startRender:videoFrame width:pixelWidth height:pixelHeight];
 }
@@ -179,7 +179,7 @@
     
     [self removeFromSuperview];
     [parentView addSubview:self];
-    [self reStartRender:self.videoFrame width:_pixelWidth height:_pixelHeight];
+    [self restartRender:self.videoFrame width:_pixelWidth height:_pixelHeight];
 }
 
 - (BOOL)setCurrentContext{

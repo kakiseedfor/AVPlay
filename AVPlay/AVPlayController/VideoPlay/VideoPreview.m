@@ -128,7 +128,7 @@
     self.previewStatus = OpenedVideoPreview;
 }
 
-- (void)reStartRender:(CVImageBufferRef)imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo isfrontCamera:(BOOL)isfrontCamera isFullRange:(BOOL)isFullRange
+- (void)restartRender:(CVImageBufferRef)imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo isfrontCamera:(BOOL)isfrontCamera isFullRange:(BOOL)isFullRange
 {
     _previewStatus = UnOpenVideoPreview;
     [self startRender:imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo isfrontCamera:isfrontCamera isFullRange:isFullRange];
@@ -294,7 +294,7 @@
     
     [self removeFromSuperview];
     [parentView addSubview:self];
-    [self reStartRender:_copyImageBufferRef timingInfo:kCMTimingInfoInvalid isfrontCamera:_isfrontCamera isFullRange:_isFullRange];
+    [self restartRender:_copyImageBufferRef timingInfo:kCMTimingInfoInvalid isfrontCamera:_isfrontCamera isFullRange:_isFullRange];
 }
 
 - (void)setOpenRecord:(BOOL)openRecord{

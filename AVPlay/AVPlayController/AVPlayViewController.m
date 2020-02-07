@@ -68,7 +68,6 @@
 }
 
 - (IBAction)optionAction:(id)sender {
-    _isPause = YES;
     _isClose = !_isClose;
     _isClose ? [_playController closeAVPlay] : [_playController restartAVPlay];
     _optionBtn.title = _isClose ? @"打开" : @"关闭";

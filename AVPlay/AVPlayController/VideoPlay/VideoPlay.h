@@ -20,7 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface VideoPlay : UIView
 @property (readonly, nonatomic) VideoPlayStatus status;
 
-- (void)reStartRender:(Video_Frame *)videoFrame width:(int)pixelWidth height:(int)pixelHeight;
+- (void)restartRender:(Video_Frame *)videoFrame width:(int)pixelWidth height:(int)pixelHeight;
 
 - (void)startRender:(Video_Frame *)videoFrame width:(int)pixelWidth height:(int)pixelHeight;
 

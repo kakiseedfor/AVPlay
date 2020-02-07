@@ -49,6 +49,11 @@
                  [self.synchronizer closeSynchronizer];  //界面初始化失败或关闭了，则关闭同步资源
                  return ;
              }
+             
+             /*
+              是否自动开始播放
+              */
+             !self.autoStart ? : [self.audioPlay startAudio:Audio_Play_Type filePath:nil];
          }];
     }
     return self;
@@ -74,6 +79,7 @@
      */
     if (_synchronizer.status == DecoderOpened || _synchronizer.status == DecoderPause) {
         [_audioPlay startAudio:Audio_Play_Type filePath:nil];
+        self.autoStart = YES;
     }
 }
 
@@ -117,15 +123,11 @@
  处理第一帧视频
  */
 - (void)firstCorrectVideoFrame:(Video_Frame *)videoFrame{
-    [_videoPlay reStartRender:videoFrame width:videoFrame.width height:videoFrame.height];
+    [_videoPlay restartRender:videoFrame width:videoFrame.width height:videoFrame.height];
 }
 
 - (void)firstCorrectAudioFrame:(Audio_Frame *)audioFrame{
     [_audioPlay setChannel:audioFrame.channels sampleRate:audioFrame.nbSamples sampleFormat:audioFrame.sampleFormat];
-    /*
-     是否自动开始播放
-     */
-    !self.autoStart ? : [_audioPlay reStartAudio:Audio_Play_Type filePath:nil];
 }
 
 #pragma mark - AudioRenderProtocol

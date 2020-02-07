@@ -75,10 +75,12 @@
 }
 
 - (void)setOpenRecord:(BOOL)openRecord{
-    [_videoPreview setOpenRecord:openRecord];
+//    [_videoPreview setOpenRecord:openRecord];
+    [_audioPlay restartAudioEncode:BundleWithPathInResource(@"vocal.pcm")];
 }
 
 - (void)closeRecord{
+    [_audioPlay closeAudioPaly];
     [_videoPreview closeVideoPreview];
     [_cameraSession closeCaptureSession];
 }
@@ -98,7 +100,7 @@
 }
 
 - (void)didOutputFirstSampleBuffer:(CVImageBufferRef _Nullable )imageBufferRef timingInfo:(CMSampleTimingInfo)timingInfo{
-    [_videoPreview reStartRender:imageBufferRef timingInfo:timingInfo isfrontCamera:_cameraSession.isfrontCamera isFullRange:_cameraSession.isFullRange];
+    [_videoPreview restartRender:imageBufferRef timingInfo:timingInfo isfrontCamera:_cameraSession.isfrontCamera isFullRange:_cameraSession.isFullRange];
 }
 
 #pragma mark - Notification

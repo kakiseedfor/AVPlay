@@ -23,9 +23,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)setChannel:(UInt32)channel sampleRate:(double)sampleRate sampleFormat:(AudioSampleFormat)sampleFormat;
 
-- (void)reStartAudio:(AudioPlayType)playType filePath:(NSString *_Nullable)filePath;
-
 - (void)startAudio:(AudioPlayType)playType filePath:(NSString *_Nullable)filePath;
+
+- (void)restartAudioEncode:(NSString *)filePath;
 
 - (void)pauseAudioPaly;
 

@@ -49,7 +49,7 @@
     #endif
 #endif
 
-#define BundleWithPath(filePath) [NSBundle.mainBundle pathForResource:filePath.stringByDeletingPathExtension ofType:filePath.pathExtension]
+#define BundleWithPathInResource(filePath) [NSBundle.mainBundle pathForResource:filePath.stringByDeletingPathExtension ofType:filePath.pathExtension inDirectory:@"Resource"]
 
 #define BundleWithAllResource [NSBundle.mainBundle pathsForResourcesOfType:nil inDirectory:@"Resource"]
 
