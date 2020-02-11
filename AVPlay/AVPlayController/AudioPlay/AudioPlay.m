@@ -432,7 +432,7 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     fileRegion.mCompletionProcUserData = NULL;
     fileRegion.mAudioFile = fileID;
     fileRegion.mLoopCount = 0;
-    fileRegion.mStartFrame = 0;
+    fileRegion.mStartFrame = 0; //拖动[Seek]操作就是在这里设置的
     fileRegion.mFramesToPlay = (UInt32)packetCount * audioStreamBD.mFramesPerPacket;
     VerifyStatus(AudioUnitSetProperty(inputUnit, kAudioUnitProperty_ScheduledFileRegion, kAudioUnitScope_Global, 0, &fileRegion, sizeof(fileRegion)), @"Could not set File Region to input Unit", YES);
     

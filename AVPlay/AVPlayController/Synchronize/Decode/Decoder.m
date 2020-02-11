@@ -74,7 +74,6 @@ typedef struct AV_SwrBuffer{
 @property (nonatomic) unsigned int probesize;
 @property (nonatomic) double videotimeBase;
 @property (nonatomic) double audiotimeBase;
-@property (nonatomic) int fpsProbeSize;
 @property (nonatomic) int retryCount;
 @property (nonatomic) BOOL exitThread;
 
@@ -94,7 +93,6 @@ typedef struct AV_SwrBuffer{
         _delegate = delegate;
         _filePath = filePath;
         _probesize = 50 * 1024;
-        _fpsProbeSize = 3;
     }
     return self;
 }
@@ -278,7 +276,7 @@ typedef struct AV_SwrBuffer{
      获取资源的流信息(各个Stream 的MetaData，比如声音轨的声道数、采样率、表示格式或者视频轨的宽、高、fps等)
      1、探测数据量大小
      2、用于探测的帧数
-     2、最大解析时间长度
+     3、最大解析时间长度
      */
     formatContext->probesize = _probesize;
     formatContext->fps_probe_size = -1;
