@@ -168,9 +168,6 @@
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
-//    GLenum code = glGetError();
-//    NSLog(@"%s code %d",__FUNCTION__,code);
-    
     CVReturn cvReturn = CVPixelBufferLockBaseAddress(_imageBufferRef, 0);
     if (cvReturn != kCVReturnSuccess) {
         NSLog(@"Lock Base Address Fail! %d",cvReturn);

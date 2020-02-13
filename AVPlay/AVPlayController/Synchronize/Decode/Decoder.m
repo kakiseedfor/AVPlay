@@ -692,6 +692,12 @@ typedef struct AV_SwrBuffer{
     return frame;
 }
 
+/*
+ 时间基准：
+    1、Demux出来的帧对应于源AVStream的time_base。
+    2、Mux出来的帧对应于目标AVStream的time_base。
+    3、编码器出来的帧对应于目标AVCodecContext的time_base。
+ */
 - (double)avStreamTimeBase:(AVStream *)stream{
     double timeBase = av_q2d(AV_TIME_BASE_Q);
     

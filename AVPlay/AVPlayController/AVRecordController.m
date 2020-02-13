@@ -76,7 +76,7 @@
 
 - (void)setOpenRecord:(BOOL)openRecord{
 //    [_videoPreview setOpenRecord:openRecord];
-    [_audioPlay restartAudioEncode:BundleWithPathInResource(@"vocal.pcm")];
+    [_audioPlay restartAudioEncode:BundleWithPathInResource(@"problem.pcm")];
 }
 
 - (void)closeRecord{

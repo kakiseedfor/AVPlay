@@ -550,10 +550,8 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     }
     
     memcpy(_PCMBuffer, data.bytes, data.length);
-    ioData->mBuffers[0].mNumberChannels = _channel;
     ioData->mBuffers[0].mDataByteSize = (UInt32)data.length;
     ioData->mBuffers[0].mData = _PCMBuffer;
-    ioData->mNumberBuffers = 1;
     *ioNumberDataPackets = 1 ;
     
     return noErr;
@@ -630,12 +628,14 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
             break;
         }
         
-        AudioBufferList packetBufferList = {0};
-        packetBufferList.mNumberBuffers = 1;
+        /*
+         On input:解码；On output:编码。
+         */
+        AudioBufferList packetBufferList = {1};
         packetBufferList.mBuffers[0].mNumberChannels = _channel;
         packetBufferList.mBuffers[0].mDataByteSize = _packetSize;
         packetBufferList.mBuffers[0].mData = _packetBuffer;
-        UInt32 ioOutputDataPacketSize = 1;
+        UInt32 ioOutputDataPacketSize = 1;  //这里属于On output情况，写入到packetBufferList的已转换的音频数据包的个数
         VerifyStatus(AudioConverterFillComplexBuffer(_converterRef, InInputDataProc, (__bridge void *)self, &ioOutputDataPacketSize, &packetBufferList, NULL), @"Could not exec Audio Converter Fill ComplexBuffer or Completed!", NO);
         
         if (!packetBufferList.mBuffers[0].mDataByteSize) {
