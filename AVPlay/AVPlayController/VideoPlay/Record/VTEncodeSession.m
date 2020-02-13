@@ -50,10 +50,10 @@
             b：配合c中的 Bit0-1来选择字节数。
             c：预留Bit2-7[bit on]，Bit0-1[NALU字节数所占字节 - 1]，一般为0、1、3。
             d：预留Bit5-7[bit on]，Bit0-4[多少个SPS，通常为1]。
-            e：SPS所占字节数。
+            e：SPS所占字节数。[小大端存储]
             F：SPS的数据。
             g：预留Bit5-7[bit on]，Bit0-4[多少个PPS，通常为1]。
-            h：PPS所占字节数。
+            h：PPS所占字节数。[小大端存储]
             I：PPS的数据。
             j：NALU字节数所占字节。
             ⚠️e~F至少一次，h~I至少一次。

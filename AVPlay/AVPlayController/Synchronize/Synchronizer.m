@@ -222,7 +222,7 @@ static void * _Nullable ThreadMain(void * _Nullable arg);
      若剩余缓冲时间小于最小缓冲时间则继续解码，或者没有视频帧，或者没有音频帧
      */
     if (_bufferDuration < Min_Buffered_Duration || !_videoFrames.count || !_audioFrames.count) {
-        NSLog(@"_bufferDuration : %f, video count : %lu, audio count : %lu", _bufferDuration ,(unsigned long)_videoFrames.count,_audioFrames.count);
+        NSLog(@"_bufferDuration : %f, video count : %lu, audio count : %lu", _bufferDuration ,(unsigned long)_videoFrames.count,(unsigned long)_audioFrames.count);
         [_decoder resumeDecoder];
     }
     
