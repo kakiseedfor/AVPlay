@@ -242,6 +242,9 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 #pragma mark - Mixer Unit
     //设置音频转换节点的输出格式。(这里如果需要输出到扬声器，需与扬声器输出格式一致，否则可以不一致)
     AudioUnit mixerUnit = [self getAudioUnit:_mixerNode errorMSG:@"Could not get mixerUnit in AUGraph"];
+    //设置混合器可以混合多少路流
+    UInt32 mixerElementCount = 1;
+    AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &mixerElementCount, sizeof(mixerElementCount));
     //设置混合器输出采样率
     VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_SampleRate, kAudioUnitScope_Output, 0, &_sampleRate, sizeof(_sampleRate)), @"Could not set Mixer output SampleRate", YES);
     VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &speakerSBD, sizeof(speakerSBD)), @"Could not set Stream Format for I/O Units Input scope", YES);
@@ -258,18 +261,15 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
      */
     VerifyStatus(AUGraphConnectNodeInput(_auGraph, _ioNode, 1, _formatNode, 0), @"Could not connect ioNode to formatNode", YES);
     VerifyStatus(AUGraphConnectNodeInput(_auGraph, _formatNode, 0, _mixerNode, 0), @"Could not connect formatNode to mixerNode", YES);
+//    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _mixerNode, 0, _ioNode, 0), @"Could not connect formatNode to mixerNode", YES);  //自动填充(这种方式已形成完整的闭合节点连接了，无需在回调中填充数据)
     
+    //手动填充方式，需在回调中填充_ioNode需要的数据
     AURenderCallbackStruct callbackStruct = {
         &AU_RenderCallback,
         (__bridge void * _Nullable)self
     };
-    if (AudioSession.shareInstance.userSpeaker) {
-        //设置扬声器的上一级节点为输入回调。当扬声器需要数据时，会回调这个函数，然后在回调函数里通过其他节点向麦克风要数据。
-        VerifyStatus(AUGraphSetNodeInputCallback(_auGraph, _ioNode, 0, &callbackStruct), @"Could not set callBack for ioNode", YES);
-    }else{
-        VerifyStatus(AUGraphConnectNodeInput(_auGraph, _mixerNode, 0, _ioNode, 0), @"Could not connect formatNode to mixerNode", YES);
-        VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof(callbackStruct)), @"Could not set AURenderCallbackStruct on formatUnit", YES);
-    }
+    VerifyStatus(AUGraphSetNodeInputCallback(_auGraph, _ioNode, 0, &callbackStruct), @"Could not set callBack for ioNode", YES);    //第一种回调方式
+//    VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof(callbackStruct)), @"Could not set AURenderCallbackStruct on formatUnit", YES);    //第二种回调方式[耳返效果好想没有]
 }
 
 - (void)openAudioEncode:(NSString *)filePath{
@@ -518,8 +518,8 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
         return status;
     }
     
-    AudioUnit formatUnit = [self getAudioUnit:_formatNode errorMSG:@"Could not get mixerNode in AUGraph"];
-    VerifyStatus(AudioUnitRender(formatUnit, ioActionFlags, inTimeStamp, 0, inNumberFrames, ioData), @"AURender fail!", YES);
+    AudioUnit mixerUnit = [self getAudioUnit:_mixerNode errorMSG:@"Could not get mixerNode in AUGraph"];
+    VerifyStatus(AudioUnitRender(mixerUnit, ioActionFlags, inTimeStamp, 0, inNumberFrames, ioData), @"AURender fail!", YES);
     status = ExtAudioFileWriteAsync(_extRef, inNumberFrames, ioData);
     dispatch_semaphore_signal(_semaphore);
     
