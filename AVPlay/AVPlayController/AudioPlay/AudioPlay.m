@@ -268,8 +268,11 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
         &AU_RenderCallback,
         (__bridge void * _Nullable)self
     };
-    VerifyStatus(AUGraphSetNodeInputCallback(_auGraph, _ioNode, 0, &callbackStruct), @"Could not set callBack for ioNode", YES);    //第一种回调方式
-//    VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof(callbackStruct)), @"Could not set AURenderCallbackStruct on formatUnit", YES);    //第二种回调方式[耳返效果好想没有]
+    if (AudioSession.shareInstance.userSpeaker) {
+        VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof(callbackStruct)), @"Could not set AURenderCallbackStruct on formatUnit", YES);    //第二种回调方式[耳返效果貌似没有]
+    }else{
+        VerifyStatus(AUGraphSetNodeInputCallback(_auGraph, _ioNode, 0, &callbackStruct), @"Could not set callBack for ioNode", YES);    //第一种回调方式
+    }
 }
 
 - (void)openAudioEncode:(NSString *)filePath{
@@ -502,11 +505,6 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 
 - (OSStatus)auRenderCallback:(AudioUnitRenderActionFlags *)ioActionFlags inTimeStamp:(const AudioTimeStamp *)inTimeStamp inBusNumber:(UInt32)inBusNumber inNumberFrames:(UInt32)inNumberFrames ioData:(AudioBufferList *)ioData
 {
-    for (UInt32 i = 0; i < ioData->mNumberBuffers; i++) {
-        AudioBuffer buffer = ioData->mBuffers[i];
-        memset(buffer.mData, 0, buffer.mDataByteSize);  //重置内存空间
-    }
-    
     OSStatus status = noErr;
     if (_playStatus == Audio_Play_Closed) {
         return status;
@@ -521,6 +519,14 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     AudioUnit mixerUnit = [self getAudioUnit:_mixerNode errorMSG:@"Could not get mixerNode in AUGraph"];
     VerifyStatus(AudioUnitRender(mixerUnit, ioActionFlags, inTimeStamp, 0, inNumberFrames, ioData), @"AURender fail!", YES);
     status = ExtAudioFileWriteAsync(_extRef, inNumberFrames, ioData);
+    
+    if (AudioSession.shareInstance.userSpeaker) {
+        for (UInt32 i = 0; i < ioData->mNumberBuffers; i++) {
+            AudioBuffer buffer = ioData->mBuffers[i];
+            memset(buffer.mData, 0, buffer.mDataByteSize);  //重置内存空间
+        }
+    }
+    
     dispatch_semaphore_signal(_semaphore);
     
     return status;
