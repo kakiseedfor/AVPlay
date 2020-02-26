@@ -8,81 +8,33 @@
 
 #import "KVOObserve.h"
 
-@interface KVOObserve ()
-@property (strong, nonatomic) NSMutableArray<KVOInfo *> *kvoInfos;
-
-@end
-
 @implementation KVOObserve
+
++ (instancetype)shareInstance{
+    static dispatch_once_t onceToken;
+    static KVOObserve *observe = nil;
+    dispatch_once(&onceToken, ^{
+        observe = [[KVOObserve alloc] init];
+    });
+    return observe;
+}
 
 - (void)dealloc{
     NSLog(@"%s",__FUNCTION__);
 }
 
-- (instancetype)initWith:(id)observed
-{
-    self = [super init];
-    if (self) {
-        _observed = observed;
-        _kvoInfos = [NSMutableArray array];
-    }
-    return self;
-}
-
-- (void)updateKVOObserve{
-    [self removeWithObserver:nil];
-}
-
-- (void)removeWithObserver:(id)observe{
-    NSMutableArray *tempArray = [NSMutableArray array];
-    [_kvoInfos enumerateObjectsUsingBlock:^(KVOInfo * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj.observe isEqual:observe]) {
-            [tempArray addObject:obj];
-            [self.observed removeObserver:self forKeyPath:obj.keyPath];
-        }
-    }];
-    [_kvoInfos removeObjectsInArray:tempArray];
-}
-
-- (BOOL)existObserve:(id)observe withKeyPath:(NSString *)keyPath{
-    __block BOOL exist = NO;
-    [_kvoInfos enumerateObjectsUsingBlock:^(KVOInfo * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj.observe isEqual:observe] && [obj.keyPath isEqualToString:keyPath]) {
-            exist = YES;
-            *stop = YES;
-        }
-    }];
-    return exist;
-}
-
-- (void)addObserver:(KVOInfo *)kvoInfo
-{
-    [_observed addObserver:self forKeyPath:kvoInfo.keyPath options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:(__bridge void * _Nullable)kvoInfo];
-    [_kvoInfos addObject:kvoInfo];
-}
-
-- (void)addObserver:(id)observe
-            keyPath:(NSString *)keyPath
-        kvoCallBack:(KVOCallBack)kvoCallBack
-{
-    //不重复添加已有的观察者对应的路径
-    if ([self existObserve:observe withKeyPath:keyPath]) {
-        return;
-    }
-    
-    KVOInfo *kvoInfo = [[KVOInfo alloc] initWith:observe keyPath:keyPath kvoCallBack:kvoCallBack];
-    [self addObserver:kvoInfo];
-}
-
+/**
+ KVO的回调线程现场是根据注册KVO时的所在线程
+ */
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     KVOInfo *info = (__bridge KVOInfo *)(context);
-    if (!info.observe) {    //观察者对象已释放，不必再回调。
+    if (!info.observe) {
         return;
     }
     
-    id oldValue = change[@"old"];
-    id newValue = change[@"new"];
+    id oldValue = change[NSKeyValueChangeOldKey];
+    id newValue = change[NSKeyValueChangeNewKey];
     
     BOOL should = NO;
     if ([oldValue isKindOfClass:NSNumber.class] && [newValue isKindOfClass:NSNumber.class]) {
@@ -107,7 +59,7 @@
         return;
     }
     
-    !info.callBack ? : info.callBack(newValue ? newValue : oldValue, [change[@"kind"] unsignedIntegerValue], change[@"indexes"]);
+    !info.callBack ? : info.callBack(newValue ? newValue : oldValue, [change[NSKeyValueChangeKindKey] unsignedIntegerValue], change[NSKeyValueChangeIndexesKey]);
 }
 
 @end

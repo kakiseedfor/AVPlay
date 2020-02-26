@@ -16,7 +16,6 @@
 		EC4CA408237944280071E8BE /* VTEncodeSession.m in Sources */ = {isa = PBXBuildFile; fileRef = EC4CA407237944280071E8BE /* VTEncodeSession.m */; };
 		EC4CA40B237944550071E8BE /* VideoPreview.m in Sources */ = {isa = PBXBuildFile; fileRef = EC4CA40A237944550071E8BE /* VideoPreview.m */; };
 		EC4CA41B237BE54F0071E8BE /* CommonGLContext.m in Sources */ = {isa = PBXBuildFile; fileRef = EC4CA41A237BE54F0071E8BE /* CommonGLContext.m */; };
-		EC5C100223B489B8002388D2 /* KVOManager.m in Sources */ = {isa = PBXBuildFile; fileRef = EC5C100123B489B8002388D2 /* KVOManager.m */; };
 		EC65D0EC232A157000BC4359 /* libavutil.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EC65D0E4232A157000BC4359 /* libavutil.a */; };
 		EC65D0ED232A157000BC4359 /* libavfilter.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EC65D0E5232A157000BC4359 /* libavfilter.a */; };
 		EC65D0EE232A157000BC4359 /* libavcodec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EC65D0E6232A157000BC4359 /* libavcodec.a */; };
@@ -44,6 +43,7 @@
 		ECADF70D23223CC000B72481 /* libiconv.2.4.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF70C23223CC000B72481 /* libiconv.2.4.0.tbd */; };
 		ECADF8252322412600B72481 /* VideoToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF8242322412600B72481 /* VideoToolbox.framework */; };
 		ECADF827232241A700B72481 /* libz.1.2.5.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = ECADF826232241A700B72481 /* libz.1.2.5.tbd */; };
+		ECAE0B1D24061F420079E7BA /* KVOController.m in Sources */ = {isa = PBXBuildFile; fileRef = ECAE0B1C24061F420079E7BA /* KVOController.m */; };
 		ECC53432239B4C5E0079A9F2 /* NSDate+String.m in Sources */ = {isa = PBXBuildFile; fileRef = ECC53431239B4C5E0079A9F2 /* NSDate+String.m */; };
 		ECF40B402368169700E7E7B0 /* KVOObserve.m in Sources */ = {isa = PBXBuildFile; fileRef = ECF40B3F2368169700E7E7B0 /* KVOObserve.m */; };
 		ECF40B43236816C800E7E7B0 /* KVOInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = ECF40B42236816C800E7E7B0 /* KVOInfo.m */; };
@@ -71,8 +71,6 @@
 		EC4CA40A237944550071E8BE /* VideoPreview.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoPreview.m; sourceTree = "<group>"; };
 		EC4CA419237BE54F0071E8BE /* CommonGLContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CommonGLContext.h; sourceTree = "<group>"; };
 		EC4CA41A237BE54F0071E8BE /* CommonGLContext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CommonGLContext.m; sourceTree = "<group>"; };
-		EC5C100023B489B8002388D2 /* KVOManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KVOManager.h; sourceTree = "<group>"; };
-		EC5C100123B489B8002388D2 /* KVOManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KVOManager.m; sourceTree = "<group>"; };
 		EC65D068232A157000BC4359 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
 		EC65D069232A157000BC4359 /* buffersrc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffersrc.h; sourceTree = "<group>"; };
 		EC65D06A232A157000BC4359 /* buffersink.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffersink.h; sourceTree = "<group>"; };
@@ -231,6 +229,8 @@
 		ECADF70C23223CC000B72481 /* libiconv.2.4.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.2.4.0.tbd; path = usr/lib/libiconv.2.4.0.tbd; sourceTree = SDKROOT; };
 		ECADF8242322412600B72481 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		ECADF826232241A700B72481 /* libz.1.2.5.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.5.tbd; path = usr/lib/libz.1.2.5.tbd; sourceTree = SDKROOT; };
+		ECAE0B1B24061F420079E7BA /* KVOController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KVOController.h; sourceTree = "<group>"; };
+		ECAE0B1C24061F420079E7BA /* KVOController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KVOController.m; sourceTree = "<group>"; };
 		ECC53430239B4C5E0079A9F2 /* NSDate+String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+String.h"; sourceTree = "<group>"; };
 		ECC53431239B4C5E0079A9F2 /* NSDate+String.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+String.m"; sourceTree = "<group>"; };
 		ECF40B3E2368169700E7E7B0 /* KVOObserve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KVOObserve.h; sourceTree = "<group>"; };
@@ -618,8 +618,8 @@
 				ECF40B42236816C800E7E7B0 /* KVOInfo.m */,
 				ECF40B3E2368169700E7E7B0 /* KVOObserve.h */,
 				ECF40B3F2368169700E7E7B0 /* KVOObserve.m */,
-				EC5C100023B489B8002388D2 /* KVOManager.h */,
-				EC5C100123B489B8002388D2 /* KVOManager.m */,
+				ECAE0B1B24061F420079E7BA /* KVOController.h */,
+				ECAE0B1C24061F420079E7BA /* KVOController.m */,
 				ECADF66C2320B62500B72481 /* NSObject+KVOObject.h */,
 				ECADF66A2320B62500B72481 /* NSObject+KVOObject.m */,
 			);
@@ -726,6 +726,7 @@
 				EC4CA402237943D00071E8BE /* CameraFrameRender.m in Sources */,
 				EC4CA41B237BE54F0071E8BE /* CommonGLContext.m in Sources */,
 				ECADF58E231F96CE00B72481 /* ViewController.m in Sources */,
+				ECAE0B1D24061F420079E7BA /* KVOController.m in Sources */,
 				ECADF664231FA47C00B72481 /* Decoder.m in Sources */,
 				EC02055C238BC753006EC882 /* CompressionFrameRender.m in Sources */,
 				ECADF599231F96CF00B72481 /* main.m in Sources */,
@@ -742,7 +743,6 @@
 				ECA818682334AF3600E725AC /* CommonUtility.m in Sources */,
 				ECADF66D2320B62500B72481 /* NSObject+KVOObject.m in Sources */,
 				ECADF661231FA3F000B72481 /* Synchronizer.m in Sources */,
-				EC5C100223B489B8002388D2 /* KVOManager.m in Sources */,
 				ECF40B402368169700E7E7B0 /* KVOObserve.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

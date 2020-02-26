@@ -11,15 +11,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface KVOObserve : NSObject
-@property (weak, readonly, nonatomic) id observed;  //被观察的对象
 
-- (instancetype)initWith:(id)observed;
-
-- (void)addObserver:(id)observe
-            keyPath:(NSString *)keyPath
-        kvoCallBack:(KVOCallBack)kvoCallBack;
-
-- (void)updateKVOObserve;
++ (instancetype)shareInstance;
 
 @end
 

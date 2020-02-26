@@ -3,10 +3,10 @@
 //  LockProject
 //
 //  Created by kakiYen on 2019/3/30.
-//  Copyright © 2019 kakiYe. All rights reserved.
+//  Copyright © 2019 kakiYen. All rights reserved.
 //
 
-#import "KVOManager.h"
+#import "KVOController.h"
 
 @interface NSObject (KVOObject)
 

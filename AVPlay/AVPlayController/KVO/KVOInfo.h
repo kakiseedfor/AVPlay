@@ -17,6 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (copy, readonly, nonatomic) KVOCallBack callBack; //KVO回调
 @property (strong, readonly, nonatomic) NSString *keyPath;  //监听路径
 
+- (instancetype)initWith:(id)observe keyPath:(NSString *)keyPath;
+
 - (instancetype)initWith:(id)observe keyPath:(NSString *)keyPath kvoCallBack:(KVOCallBack)kvoCallBack;
 
 @end
