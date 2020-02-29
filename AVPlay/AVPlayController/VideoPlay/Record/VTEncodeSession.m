@@ -38,8 +38,8 @@
             SI片：由特殊的SI宏块组成，可以让你在编码流中切换。
  
     ◆H.264 AVCC码流结构：
-        =>[Extradata + NALU] + [Extradata + NALU] + [Extradata + NALU]......
-        =>[Extradata + [NAL头 + Slice(IDR)]] + [Extradata + [NAL头 + Slice(P)]] + [Extradata + [NAL头 + Slice(B)]]...
+        =>[Extradata + NALU.length + NALU] + [NALU.length + NALU] + [NALU.length + NALU]......
+        =>[Extradata + NALU.length + [NAL头 + Slice(IDR)]] + [NALU.length + [NAL头 + Slice(P)]] + [NALU.length + [NAL头 + Slice(B)]]...
  
         Extradata：包含NALU长度[SPS、PPS]。
         | a |     b     | c | d |   e   |       F       | g |   h   |    I      |                j               |
@@ -55,7 +55,7 @@
             g：预留Bit5-7[bit on]，Bit0-4[多少个PPS，通常为1]。
             h：PPS所占字节数。[小大端存储]
             I：PPS的数据。
-            j：NALU字节数所占字节。
+            j：NALU字节数所占字节。[不包含在Extradata中]
             ⚠️e~F至少一次，h~I至少一次。
  */
 
