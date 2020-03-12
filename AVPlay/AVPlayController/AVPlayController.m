@@ -11,6 +11,18 @@
 #import "VideoPlay.h"
 #import "AudioPlay.h"
 
+/*
+ 音视频的网络传输哪个好：
+    TCP：基于流的传输；
+        需要建立连接，所以传输效率较低；
+        有重传机制，可以保证数据的完整性；
+        直播中要求实时性高，重传机制会导致接收方卡帧。
+    UPD：基于数据包的传输；
+        无需建立连接，所以传输效率较高；
+        无重传机制，不保证数据的完整性；
+        直播中因为不考虑重传，所以接收方只需要处理好丢帧逻辑，可以保证实时性。
+ */
+
 @interface AVPlayController ()<AudioRenderProtocol, SynchronizerDelegate>
 @property (weak, nonatomic) id<AVPlayControllerProtocol> delegate;
 @property (strong, nonatomic) Synchronizer *synchronizer;

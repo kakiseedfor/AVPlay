@@ -264,6 +264,9 @@
         return;
     }
     
+    /*
+     拷贝YUV分量
+     */
     for (size_t i = 0; i < CVPixelBufferGetPlaneCount(imageBufferRef); i++) {
         void *copyPlane = CVPixelBufferGetBaseAddressOfPlane(_copyImageBufferRef, i);
         void *plane = CVPixelBufferGetBaseAddressOfPlane(imageBufferRef, i);
