@@ -14,6 +14,8 @@ static OSStatus RenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioAct
 
 static OSStatus AU_RenderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData);
 
+static OSStatus AU_NotifyCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData);
+
 static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription * _Nullable *outDataPacketDescription, void *inUserData);
 
 @interface AudioPlay (){
@@ -30,6 +32,9 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 @property (nonatomic) AUNode ioNode;
 @property (nonatomic) AUNode fileNode;
 @property (nonatomic) AUNode formatNode;
+@property (nonatomic) AUNode S32ToF32Node;
+@property (nonatomic) AUNode F32ToS16Node;
+@property (nonatomic) AUNode S16ToF32Node;
 @property (nonatomic) AUNode mixerNode;
 @property (nonatomic) UInt32 channel;
 @property (nonatomic) UInt32 bufferSize;
@@ -205,18 +210,43 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
 - (void)openAudioRecord{
     //创建音频输出节点
     AudioComponentDescription ioACD = IO_ACD();
-    VerifyStatus(AUGraphAddNode(_auGraph, &ioACD, &_ioNode), @"Could not add node with type is Output and subType is RemoteIO to AUGraph", YES);
+    VerifyStatus(AUGraphAddNode(_auGraph, &ioACD, &_ioNode), @"Could not add ioNode with type is Output and subType is RemoteIO to AUGraph", YES);
     
-    //创建音频格式转换节点
-    AudioComponentDescription aucACD = AUC_ACD();
-    VerifyStatus(AUGraphAddNode(_auGraph, &aucACD, &_formatNode), @"Could not add node with type is FormatConverter and subType is Splitter to AUGraph", YES);
+    //创建音频格式转换节点 SInt32->Float32
+    AudioComponentDescription S32ToF32ACD = AUC_ACD();
+    VerifyStatus(AUGraphAddNode(_auGraph, &S32ToF32ACD, &_S32ToF32Node), @"Could not add S32ToF32Node with type is FormatConverter and subType is Splitter to AUGraph", YES);
+    
+    //创建音频格式转换节点 Float32->SInt16
+    AudioComponentDescription F32ToS16ACD = AUC_ACD();
+    VerifyStatus(AUGraphAddNode(_auGraph, &F32ToS16ACD, &_F32ToS16Node), @"Could not add F32ToS16Node with type is FormatConverter and subType is Splitter to AUGraph", YES);
+    
+    //创建音频格式转换节点 SInt16->Float32
+    AudioComponentDescription S16ToF32ACD = AUC_ACD();
+    VerifyStatus(AUGraphAddNode(_auGraph, &S16ToF32ACD, &_S16ToF32Node), @"Could not add S16ToF32Node with type is FormatConverter and subType is Splitter to AUGraph", YES);
     
     //创建音频混合器节点
     AudioComponentDescription mixACD = MCM_ACD();
-    VerifyStatus(AUGraphAddNode(_auGraph, &mixACD, &_mixerNode), @"Could not add node with type is MixerConverter and subType is Splitter to AUGraph", YES);
+    VerifyStatus(AUGraphAddNode(_auGraph, &mixACD, &_mixerNode), @"Could not add mixerNode with type is MixerConverter and subType is Splitter to AUGraph", YES);
+    
+    //创建音频文件输入节点
+    AudioComponentDescription afpACD = AFP_ACD();
+    VerifyStatus(AUGraphAddNode(_auGraph, &afpACD, &_fileNode), @"Could not add fileNode with type is Generator and subType is AudioFilePlayer to AUGraph", YES);
     
     AUGraphOpen(_auGraph);
     AudioUnit ioUnit = [self getAudioUnit:_ioNode errorMSG:@"Could not get outputUnit in AUGraph"];
+    AudioUnit S32ToF32Unit = [self getAudioUnit:_S32ToF32Node errorMSG:@"Could not get S32ToF32Unit in AUGraph"];
+    AudioUnit F32ToS16Unit = [self getAudioUnit:_F32ToS16Node errorMSG:@"Could not get F32ToS16Unit in AUGraph"];
+    AudioUnit S16ToF32Unit = [self getAudioUnit:_S16ToF32Node errorMSG:@"Could not get S16ToF32Unit in AUGraph"];
+    AudioUnit mixerUnit = [self getAudioUnit:_mixerNode errorMSG:@"Could not get mixerUnit in AUGraph"];
+//    AudioUnit fileUnit = [self getAudioUnit:_fileNode errorMSG:@"Could not get fileUnit in AUGraph"];
+    
+    //设置麦克风采样、量化、编码格式。
+    AudioStreamBasicDescription SInt32SBD = NonInterleavedPCM_ASBD(_sampleRate, kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked, sizeof(SInt32), _channel);
+
+    AudioStreamBasicDescription SInt16ASBD = InterleavedPCM_ASBD(_sampleRate, kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked, sizeof(SInt16), _channel);
+    
+    //设置扬声器输入格式。
+    AudioStreamBasicDescription Float32SBD = NonInterleavedPCM_ASBD(_sampleRate, kAudioFormatFlagsNativeFloatPacked, sizeof(Float32), _channel);
     
 #pragma mark - I/O Unit
     
@@ -227,52 +257,59 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     UInt32 enabledMicrophone = 1;
     VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enabledMicrophone, sizeof(enabledMicrophone)), @"Could not open microphone!", YES);
     
-    //设置麦克风采样、量化、编码格式。
-    AudioStreamBasicDescription microPhoneSBD = NonInterleavedPCM_ASBD(_sampleRate, kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked, sizeof(SInt32), _channel);
-    VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &microPhoneSBD, sizeof(microPhoneSBD)), @"Could not set Stream Format for I/O Units Output scope", YES);
+    VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &SInt32SBD, sizeof(SInt32SBD)), @"Could not set Stream Format for I/O Units Output scope", YES);
     
     //设置音频I/O节点扬声器请求数据的最大帧数。
     UInt32 maximumFrames = 2048;
     VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maximumFrames, sizeof(maximumFrames)), @"Could not set maximum Frames for I/O Units global scope", YES);
 
-    //设置扬声器输入格式。
-    AudioStreamBasicDescription speakerSBD = NonInterleavedPCM_ASBD(_sampleRate, kAudioFormatFlagsNativeFloatPacked, sizeof(Float32), _channel);
-    VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &speakerSBD, sizeof(speakerSBD)), @"Could not set Stream Format for I/O Units Input scope", YES);
-    
-#pragma mark - Mixer Unit
-    //设置音频转换节点的输出格式。(这里如果需要输出到扬声器，需与扬声器输出格式一致，否则可以不一致)
-    AudioUnit mixerUnit = [self getAudioUnit:_mixerNode errorMSG:@"Could not get mixerUnit in AUGraph"];
-    //设置混合器可以混合多少路流
-    UInt32 mixerElementCount = 1;
-    AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &mixerElementCount, sizeof(mixerElementCount));
-    //设置混合器输出采样率
-    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_SampleRate, kAudioUnitScope_Output, 0, &_sampleRate, sizeof(_sampleRate)), @"Could not set Mixer output SampleRate", YES);
-    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &speakerSBD, sizeof(speakerSBD)), @"Could not set Stream Format for I/O Units Input scope", YES);
-    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &speakerSBD, sizeof(speakerSBD)), @"Could not set Stream Format for I/O Units Output scope", YES);
+    VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for I/O Units Input scope", YES);
     
 #pragma mark - Format Unit
-    AudioUnit formatUnit = [self getAudioUnit:_formatNode errorMSG:@"Could not get formatUnit in AUGraph"];
-    VerifyStatus(AudioUnitSetProperty(formatUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &speakerSBD, sizeof(speakerSBD)), @"Could not set Stream Format for I/O Units Input scope", YES);
-    //设置音频转换节点的输入格式。(应与麦克风格式一致)
-    VerifyStatus(AudioUnitSetProperty(formatUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &microPhoneSBD, sizeof(microPhoneSBD)), @"Could not set Stream Format for I/O Units Input scope", YES);
+    VerifyStatus(AudioUnitSetProperty(S32ToF32Unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &SInt32SBD, sizeof(SInt32SBD)), @"Could not set Stream Format for S32ToF32 Unit Input scope", YES);
+    VerifyStatus(AudioUnitSetProperty(S32ToF32Unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for S32ToF32 Unit Output scope", YES);
     
-    /*
-     麦克风->音频I/O节点Input Scope->音频转换格式节点Output Scope->音频混合器节点Output Scope
-     */
-    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _ioNode, 1, _formatNode, 0), @"Could not connect ioNode to formatNode", YES);
-    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _formatNode, 0, _mixerNode, 0), @"Could not connect formatNode to mixerNode", YES);
-//    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _mixerNode, 0, _ioNode, 0), @"Could not connect formatNode to mixerNode", YES);  //自动填充(这种方式已形成完整的闭合节点连接了，无需在回调中填充数据)
+    VerifyStatus(AudioUnitSetProperty(F32ToS16Unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for F32ToS16 Unit Input scope", YES);
+    VerifyStatus(AudioUnitSetProperty(F32ToS16Unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &SInt16ASBD, sizeof(SInt16ASBD)), @"Could not set Stream Format for F32ToS16 Units Output scope", YES);
+
+    VerifyStatus(AudioUnitSetProperty(S16ToF32Unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &SInt16ASBD, sizeof(SInt16ASBD)), @"Could not set Stream Format for S16ToF32 Unit Input scope", YES);
+    VerifyStatus(AudioUnitSetProperty(S16ToF32Unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for S16ToF32 Unit Output scope", YES);
     
-    //手动填充方式，需在回调中填充_ioNode需要的数据
-    AURenderCallbackStruct callbackStruct = {
-        &AU_RenderCallback,
-        (__bridge void * _Nullable)self
-    };
-    if (AudioSession.shareInstance.userSpeaker) {
-        VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof(callbackStruct)), @"Could not set AURenderCallbackStruct on formatUnit", YES);    //第二种回调方式[耳返效果貌似没有]
-    }else{
+#pragma mark - Mixer Unit
+    //设置混合器可以混合多少路流
+//    UInt32 mixerElementCount = 2;
+    UInt32 mixerElementCount = 1;
+    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &mixerElementCount, sizeof(mixerElementCount)), @"Could not set Mixer Element Count", YES);
+    
+    //设置混合器输出采样率
+    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_SampleRate, kAudioUnitScope_Output, 0, &_sampleRate, sizeof(_sampleRate)), @"Could not set Mixer output SampleRate", YES);
+    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for mixer Unit Input scope", YES);
+    VerifyStatus(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for mixer Unit Output scope", YES);
+    
+#pragma mark - File Unit
+//    VerifyStatus(AudioUnitSetProperty(fileUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &Float32SBD, sizeof(Float32SBD)), @"Could not set Stream Format for I/O Units Output scope", YES);
+    
+#pragma mark -
+    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _ioNode, 1, _S32ToF32Node, 0), @"Could not connect ioNode to formatNode", YES);
+    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _S32ToF32Node, 0, _mixerNode, 0), @"Could not connect ioNode to formatNode", YES);
+//    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _fileNode, 0, _mixerNode, 1), @"Could not connect ioNode to formatNode", YES);
+    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _mixerNode, 0, _F32ToS16Node, 0), @"Could not connect formatNode to mixerNode", YES);
+    VerifyStatus(AUGraphConnectNodeInput(_auGraph, _F32ToS16Node, 0, _S16ToF32Node, 0), @"Could not connect formatNode to mixerNode", YES);
+    
+    //直接使用扬声器会有啸叫。
+//    if (AudioSession.shareInstance.userSpeaker) {
+        //手动填充方式，需在回调中填充_ioNode需要的数据
+        AURenderCallbackStruct callbackStruct = {
+            &AU_RenderCallback,
+            (__bridge void * _Nullable)self
+        };
+        
         VerifyStatus(AUGraphSetNodeInputCallback(_auGraph, _ioNode, 0, &callbackStruct), @"Could not set callBack for ioNode", YES);    //第一种回调方式
-    }
+//        VerifyStatus(AudioUnitSetProperty(ioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callbackStruct, sizeof(callbackStruct)), @"Could not set AURenderCallbackStruct on formatUnit", YES);    //第二种回调方式[耳返效果貌似没有]
+//    }else{
+//        VerifyStatus(AUGraphConnectNodeInput(_auGraph, _S16ToF32Node, 0, _ioNode, 0), @"Could not connect formatNode to mixerNode", YES);
+//        AudioUnitAddRenderNotify(F32ToS16Unit, &AU_NotifyCallback, (__bridge void * _Nullable)self);
+//    }
 }
 
 - (void)openAudioEncode:(NSString *)filePath{
@@ -510,6 +547,12 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
         return status;
     }
     
+    Boolean isRuning;
+    VerifyStatus(AUGraphIsRunning(_auGraph, &isRuning), @"Could not get AUGraph status", YES);
+    if (!isRuning) {
+        return status;
+    }
+    
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     if (_playStatus == Audio_Play_Closed) {
         dispatch_semaphore_signal(_semaphore);
@@ -520,6 +563,7 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     VerifyStatus(AudioUnitRender(mixerUnit, ioActionFlags, inTimeStamp, 0, inNumberFrames, ioData), @"AURender fail!", YES);
     status = ExtAudioFileWriteAsync(_extRef, inNumberFrames, ioData);
     
+    //直接使用扬声器会有啸叫。
     if (AudioSession.shareInstance.userSpeaker) {
         for (UInt32 i = 0; i < ioData->mNumberBuffers; i++) {
             AudioBuffer buffer = ioData->mBuffers[i];
@@ -530,6 +574,10 @@ static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNu
     dispatch_semaphore_signal(_semaphore);
     
     return status;
+}
+
+- (OSStatus)auNotifyCallback:(AudioUnitRenderActionFlags *)ioActionFlags inTimeStamp:(const AudioTimeStamp *)inTimeStamp inBusNumber:(UInt32)inBusNumber inNumberFrames:(UInt32)inNumberFrames ioData:(AudioBufferList *)ioData{
+    return noErr;
 }
 
 - (OSStatus)inInputDataProc:(AudioConverterRef)inAudioConverter ioNumberDataPackets:(UInt32 *)ioNumberDataPackets ioData:(AudioBufferList *)ioData
@@ -767,6 +815,11 @@ static OSStatus AU_RenderCallback(void *inRefCon, AudioUnitRenderActionFlags *io
 {
     AudioPlay *audioPlay = (__bridge AudioPlay *)inRefCon;
     return [audioPlay auRenderCallback:ioActionFlags inTimeStamp:inTimeStamp inBusNumber:inBusNumber inNumberFrames:inNumberFrames ioData:ioData];
+}
+
+static OSStatus AU_NotifyCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData){
+    AudioPlay *audioPlay = (__bridge AudioPlay *)inRefCon;
+    return [audioPlay auNotifyCallback:ioActionFlags inTimeStamp:inTimeStamp inBusNumber:inBusNumber inNumberFrames:inNumberFrames ioData:ioData];
 }
 
 static OSStatus InInputDataProc(AudioConverterRef inAudioConverter, UInt32 *ioNumberDataPackets, AudioBufferList *ioData, AudioStreamPacketDescription * _Nullable *outDataPacketDescription, void *inUserData)

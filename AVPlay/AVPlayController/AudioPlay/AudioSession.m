@@ -137,7 +137,7 @@
 - (void)setActive:(BOOL)active{
     [self setCategory:_category];
     [self setSampleRate:_sampleRate];
-    [self setBufferDuration:_bufferDuration];
+//    [self setBufferDuration:_bufferDuration];
     
     NSError *error = nil;
     [AVAudioSession.sharedInstance setActive:active error:&error] ? : NSLog(@"Occur an error with %@ when active audio session",error.domain);

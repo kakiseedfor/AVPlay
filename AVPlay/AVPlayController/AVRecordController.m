@@ -76,7 +76,8 @@
 
 - (void)setOpenRecord:(BOOL)openRecord{
 //    [_videoPreview setOpenRecord:openRecord];
-    [_audioPlay restartAudioEncode:BundleWithPathInResource(@"problem.pcm")];
+//    [_audioPlay restartAudioEncode:BundleWithPathInResource(@"problem.pcm")];
+    [_audioPlay startAudio:Audio_Record_Type filePath:InCachesDirectory(@"record.caf")];
 }
 
 - (void)closeRecord{
