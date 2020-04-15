@@ -53,9 +53,9 @@
 }
 
 - (void)removeAllObserver{
-    [_kvoInfos enumerateObjectsUsingBlock:^(KVOInfo * _Nonnull obj, BOOL * _Nonnull stop) {
-        [self.originalObj removeObserver:KVOObserve.shareInstance forKeyPath:obj.keyPath];
-    }];
+    for (KVOInfo *obj in _kvoInfos) {
+        [_originalObj removeObserver:KVOObserve.shareInstance forKeyPath:obj.keyPath];
+    }
     [_kvoInfos removeAllObjects];
 }
 
@@ -98,6 +98,12 @@
 - (BOOL)existObserve:(id)observer withKeyPath:(NSString *)keyPath{
     KVOInfo *kvoInfo = [[KVOInfo alloc] initWith:observer keyPath:keyPath];
     return [_kvoInfos containsObject:kvoInfo];
+}
+
+- (void)didReleaseObserve:(KVOInfo *_Nonnull)info{
+    if (!info.observe) {
+        [self removeObserver:info.observe withKeyPath:info.keyPath];
+    }
 }
 
 @end

@@ -21,45 +21,6 @@
 
 @implementation ViewController
 
-- (void)updateList{
-    @weakify(self);
-    [self addObserver:self forKeyPath:@"dataArray" kvoCallBack:^(id _Nullable context, NSKeyValueChange valueChange, NSIndexSet * _Nullable indexes)
-    {
-        @strongify(self);
-        NSMutableArray *tempArray = [NSMutableArray array];
-        [indexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
-            [tempArray addObject:[NSIndexPath indexPathForRow:idx inSection:0]];
-        }];
-        
-        switch (valueChange) {
-            case NSKeyValueChangeSetting:
-            case NSKeyValueChangeInsertion:
-                [self.tableView insertRowsAtIndexPaths:tempArray withRowAnimation:UITableViewRowAnimationFade];
-                break;
-            case NSKeyValueChangeRemoval:{
-                [self.tableView deleteRowsAtIndexPaths:tempArray withRowAnimation:UITableViewRowAnimationFade];
-            }
-                break;
-            default:
-                break;
-        }
-    }];
-    [self.proxyArray removeAllObjects];
-    [self.proxyArray addObjectsFromArray:BundleWithAllResource];
-    
-    NSError *error = nil;
-    NSString *filePath = InCachesDirectory(@"Record");
-    NSArray *temp = [NSFileManager.defaultManager contentsOfDirectoryAtPath:filePath error:&error];
-    
-    [temp enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSString *tempFilePath = [filePath stringByAppendingFormat:@"/%@",obj];
-        BOOL isDirectory = NO;
-        if ([NSFileManager.defaultManager fileExistsAtPath:tempFilePath isDirectory:&isDirectory]) {
-            isDirectory ? : [self.proxyArray addObject:tempFilePath];
-        }
-    }];
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -141,6 +102,43 @@
     return _dataArray;
 }
 
-
+- (void)updateList{
+    @weakify(self);
+    [self addObserver:self forKeyPath:@"dataArray" kvoCallBack:^(id _Nullable context, NSKeyValueChange valueChange, NSIndexSet * _Nullable indexes)
+     {
+         @strongify(self);
+         NSMutableArray *tempArray = [NSMutableArray array];
+         [indexes enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
+             [tempArray addObject:[NSIndexPath indexPathForRow:idx inSection:0]];
+         }];
+         
+         switch (valueChange) {
+             case NSKeyValueChangeSetting:
+             case NSKeyValueChangeInsertion:
+                 [self.tableView insertRowsAtIndexPaths:tempArray withRowAnimation:UITableViewRowAnimationFade];
+                 break;
+             case NSKeyValueChangeRemoval:{
+                 [self.tableView deleteRowsAtIndexPaths:tempArray withRowAnimation:UITableViewRowAnimationFade];
+             }
+                 break;
+             default:
+                 break;
+         }
+     }];
+    [self.proxyArray removeAllObjects];
+    [self.proxyArray addObjectsFromArray:BundleWithAllResource];
+    
+    NSError *error = nil;
+    NSString *filePath = InCachesDirectory(@"Record");
+    NSArray *temp = [NSFileManager.defaultManager contentsOfDirectoryAtPath:filePath error:&error];
+    
+    [temp enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *tempFilePath = [filePath stringByAppendingFormat:@"/%@",obj];
+        BOOL isDirectory = NO;
+        if ([NSFileManager.defaultManager fileExistsAtPath:tempFilePath isDirectory:&isDirectory]) {
+            isDirectory ? : [self.proxyArray addObject:tempFilePath];
+        }
+    }];
+}
 
 @end
