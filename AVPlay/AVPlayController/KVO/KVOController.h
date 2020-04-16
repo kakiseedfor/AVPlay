@@ -13,11 +13,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface KVOController : NSObject
 
-- (instancetype)initWith:(id)originalObj;
-
-- (void)addObserver:(id)observe
+- (void)addObserver:(id)original
+            observe:(id)observe
          forKeyPath:(NSString *)keyPath
         kvoCallBack:(KVOCallBack)kvoCallBack;
+
+- (void)removeOriginal:(id)observer;
 
 @end
 

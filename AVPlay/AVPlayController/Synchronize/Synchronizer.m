@@ -44,6 +44,7 @@ static void * _Nullable ThreadMain(void * _Nullable arg);
 - (void)dealloc
 {
     NSLog(@"%s",__FUNCTION__);
+    [self removeAllObserver];
 }
 
 - (instancetype)initWith:(NSString *)filePath delegate:(id<SynchronizerDelegate>)delegate

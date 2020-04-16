@@ -14,4 +14,6 @@
          forKeyPath:(NSString *)keyPath
         kvoCallBack:(KVOCallBack)kvoCallBack;
 
+- (void)removeAllObserver;
+
 @end

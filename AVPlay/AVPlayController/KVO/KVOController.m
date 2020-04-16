@@ -10,7 +10,6 @@
 
 @interface KVOController ()
 @property (strong, nonatomic) NSMutableSet<KVOInfo *> *kvoInfos;
-@property (weak, nonatomic) id originalObj;
 
 @end
 
@@ -19,25 +18,24 @@
 - (void)dealloc
 {
     NSLog(@"%s",__FUNCTION__);
-    [self removeAllObserver];
 }
 
-- (instancetype)initWith:(id)originalObj
+- (instancetype)init
 {
     self = [super init];
     if (self) {
         _kvoInfos = [NSMutableSet setWithCapacity:1];
-        _originalObj = originalObj;
     }
     return self;
 }
 
-- (void)addObserver:(id)observe
+- (void)addObserver:(id)original
+            observe:(id)observe
          forKeyPath:(NSString *)keyPath
         kvoCallBack:(KVOCallBack)kvoCallBack
 {
     //属性不存在
-    if (![self verifyKeyPath:keyPath]) {
+    if (![self verifyKeyPath:original keyPath:keyPath]) {
         return;
     }
     
@@ -49,24 +47,18 @@
     KVOInfo *kvoInfo = [[KVOInfo alloc] initWith:observe keyPath:keyPath kvoCallBack:kvoCallBack];
     [_kvoInfos addObject:kvoInfo];
     
-    [_originalObj addObserver:KVOObserve.shareInstance forKeyPath:kvoInfo.keyPath options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:(__bridge void * _Nullable)kvoInfo];
+    [original addObserver:KVOObserve.shareInstance forKeyPath:kvoInfo.keyPath options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld context:(__bridge void * _Nullable)kvoInfo];
 }
 
-- (void)removeAllObserver{
-    for (KVOInfo *obj in _kvoInfos) {
-        [_originalObj removeObserver:KVOObserve.shareInstance forKeyPath:obj.keyPath];
+- (void)removeOriginal:(id)original{
+    for (KVOInfo *kvoInfo in _kvoInfos) {
+        [original removeObserver:KVOObserve.shareInstance forKeyPath:kvoInfo.keyPath];
     }
     [_kvoInfos removeAllObjects];
 }
 
-- (void)removeObserver:(NSObject *)observer withKeyPath:(NSString *)keyPath{
-    KVOInfo *kvoInfo = [[KVOInfo alloc] initWith:observer keyPath:keyPath];
-    [_kvoInfos removeObject:kvoInfo];
-    [_originalObj removeObserver:KVOObserve.shareInstance forKeyPath:keyPath];
-}
-
-- (BOOL)verifyKeyPath:(NSString *)keyPath{
-    __block id tempObserved = _originalObj;
+- (BOOL)verifyKeyPath:(id)original keyPath:(NSString *)keyPath{
+    __block id tempObserved = original;
     __block BOOL should = NO;
     
     NSArray *keyPaths = [keyPath componentsSeparatedByString:@"."];
@@ -98,12 +90,6 @@
 - (BOOL)existObserve:(id)observer withKeyPath:(NSString *)keyPath{
     KVOInfo *kvoInfo = [[KVOInfo alloc] initWith:observer keyPath:keyPath];
     return [_kvoInfos containsObject:kvoInfo];
-}
-
-- (void)didReleaseObserve:(KVOInfo *_Nonnull)info{
-    if (!info.observe) {
-        [self removeObserver:info.observe withKeyPath:info.keyPath];
-    }
 }
 
 @end

@@ -19,7 +19,15 @@
 }
 
 - (BOOL)isEqual:(KVOInfo *)object{
-    return [_observe isEqual:object.observe] && [_keyPath isEqualToString:object.keyPath];
+    BOOL should = NO;
+    if (object) {
+        should = [_observe isEqual:object.observe];
+    }
+    
+    if (object.keyPath.length) {
+        should = [_keyPath isEqualToString:object.keyPath];
+    }
+    return should;
 }
 
 - (instancetype)initWith:(id)observe keyPath:(NSString *)keyPath

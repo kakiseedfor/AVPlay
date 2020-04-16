@@ -10,6 +10,10 @@
 
 @implementation KVOObserve
 
+- (void)dealloc{
+    NSLog(@"%s",__FUNCTION__);
+}
+
 + (instancetype)shareInstance{
     static dispatch_once_t onceToken;
     static KVOObserve *observe = nil;
@@ -17,10 +21,6 @@
         observe = [[KVOObserve alloc] init];
     });
     return observe;
-}
-
-- (void)dealloc{
-    NSLog(@"%s",__FUNCTION__);
 }
 
 /**

@@ -22,7 +22,11 @@ void *NSObject_KVOController = @"NSObject_KVOController";
          forKeyPath:(NSString *)keyPath
         kvoCallBack:(KVOCallBack)kvoCallBack
 {
-    [self.kvoController addObserver:observe forKeyPath:keyPath kvoCallBack:kvoCallBack];
+    [self.kvoController addObserver:self observe:observe forKeyPath:keyPath kvoCallBack:kvoCallBack];
+}
+
+- (void)removeAllObserver{
+    [self.kvoController removeOriginal:self];
 }
 
 - (void)setKvoController:(KVOController *)kvoController{
@@ -32,7 +36,7 @@ void *NSObject_KVOController = @"NSObject_KVOController";
 - (KVOController *)kvoController{
     KVOController *tempKVOController = objc_getAssociatedObject(self, NSObject_KVOController);
     if (!tempKVOController) {
-        tempKVOController = [[KVOController alloc] initWith:self];
+        tempKVOController = [[KVOController alloc] init];
         self.kvoController = tempKVOController;
     }
     return tempKVOController;
