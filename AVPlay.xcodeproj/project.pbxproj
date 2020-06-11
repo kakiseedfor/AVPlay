@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C98F69F52491C9C900A8A16B /* AudioEncodeMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = C98F69F02491C9C900A8A16B /* AudioEncodeMedia.m */; };
+		C98F69F62491C9C900A8A16B /* AudioRecord.m in Sources */ = {isa = PBXBuildFile; fileRef = C98F69F32491C9C900A8A16B /* AudioRecord.m */; };
+		C98F69F72491C9C900A8A16B /* AudioPlayMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = C98F69F42491C9C900A8A16B /* AudioPlayMedia.m */; };
 		EC0205562386625D006EC882 /* AVRecordViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EC0205552386625D006EC882 /* AVRecordViewController.m */; };
 		EC02055C238BC753006EC882 /* CompressionFrameRender.m in Sources */ = {isa = PBXBuildFile; fileRef = EC02055B238BC753006EC882 /* CompressionFrameRender.m */; };
 		EC4CA3FB2376A57F0071E8BE /* AudioHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = EC4CA3F92376A57F0071E8BE /* AudioHeader.m */; };
@@ -53,6 +56,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C98F69EF2491C9C900A8A16B /* AudioRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioRecord.h; sourceTree = "<group>"; };
+		C98F69F02491C9C900A8A16B /* AudioEncodeMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioEncodeMedia.m; sourceTree = "<group>"; };
+		C98F69F12491C9C900A8A16B /* AudioPlayMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioPlayMedia.h; sourceTree = "<group>"; };
+		C98F69F22491C9C900A8A16B /* AudioEncodeMedia.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioEncodeMedia.h; sourceTree = "<group>"; };
+		C98F69F32491C9C900A8A16B /* AudioRecord.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioRecord.m; sourceTree = "<group>"; };
+		C98F69F42491C9C900A8A16B /* AudioPlayMedia.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioPlayMedia.m; sourceTree = "<group>"; };
 		EC0205542386625D006EC882 /* AVRecordViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AVRecordViewController.h; sourceTree = "<group>"; };
 		EC0205552386625D006EC882 /* AVRecordViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AVRecordViewController.m; sourceTree = "<group>"; };
 		EC02055A238BC753006EC882 /* CompressionFrameRender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CompressionFrameRender.h; sourceTree = "<group>"; };
@@ -588,6 +597,12 @@
 				EC4CA3F92376A57F0071E8BE /* AudioHeader.m */,
 				ECADF655231FA33D00B72481 /* AudioSession.h */,
 				ECADF653231FA33D00B72481 /* AudioSession.m */,
+				C98F69EF2491C9C900A8A16B /* AudioRecord.h */,
+				C98F69F32491C9C900A8A16B /* AudioRecord.m */,
+				C98F69F12491C9C900A8A16B /* AudioPlayMedia.h */,
+				C98F69F42491C9C900A8A16B /* AudioPlayMedia.m */,
+				C98F69F22491C9C900A8A16B /* AudioEncodeMedia.h */,
+				C98F69F02491C9C900A8A16B /* AudioEncodeMedia.m */,
 			);
 			path = AudioPlay;
 			sourceTree = "<group>";
@@ -722,6 +737,7 @@
 				ECADF65A231FA33D00B72481 /* AudioPlay.m in Sources */,
 				EC0205562386625D006EC882 /* AVRecordViewController.m in Sources */,
 				EC4CA408237944280071E8BE /* VTEncodeSession.m in Sources */,
+				C98F69F52491C9C900A8A16B /* AudioEncodeMedia.m in Sources */,
 				ECF40B43236816C800E7E7B0 /* KVOInfo.m in Sources */,
 				EC4CA402237943D00071E8BE /* CameraFrameRender.m in Sources */,
 				EC4CA41B237BE54F0071E8BE /* CommonGLContext.m in Sources */,
@@ -730,9 +746,11 @@
 				ECADF664231FA47C00B72481 /* Decoder.m in Sources */,
 				EC02055C238BC753006EC882 /* CompressionFrameRender.m in Sources */,
 				ECADF599231F96CF00B72481 /* main.m in Sources */,
+				C98F69F62491C9C900A8A16B /* AudioRecord.m in Sources */,
 				EC4CA3FF237943680071E8BE /* AVRecordController.m in Sources */,
 				ECADF659231FA33D00B72481 /* VideoPlay.m in Sources */,
 				ECFEB2BB23338BDF00CCAF99 /* FilterFrameRender.m in Sources */,
+				C98F69F72491C9C900A8A16B /* AudioPlayMedia.m in Sources */,
 				ECADF58B231F96CE00B72481 /* AppDelegate.m in Sources */,
 				ECADF65C231FA33D00B72481 /* AVPlayViewController.m in Sources */,
 				ECADF65B231FA33D00B72481 /* AudioSession.m in Sources */,
