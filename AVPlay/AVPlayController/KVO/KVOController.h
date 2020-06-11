@@ -20,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)removeOriginal:(id)observer;
 
+- (BOOL)existObserve:(id)observer
+         withKeyPath:(NSString *)keyPath;
+
 @end
 
 NS_ASSUME_NONNULL_END
