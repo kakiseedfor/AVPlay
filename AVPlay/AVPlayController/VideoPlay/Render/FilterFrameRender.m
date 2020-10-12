@@ -88,7 +88,6 @@
 }
 
 - (void)renderFrame:(GLuint)inTexturesHandle{
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glUseProgram(_programHandle);
     
     //图片物体坐标度，按原图行缩小 1/2。
@@ -133,6 +132,7 @@
     int texSampler = glGetUniformLocation(_programHandle, "texSampler");    //获取 GLSL 里的 "texSampler" 变量
     glUniform1i(texSampler, 0); //将 GL_TEXTURE0 纹理单元赋值到 texSampler
     
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);  //将纹理渲染到帧缓冲 Framebuffers
     glBindTexture(GL_TEXTURE_2D, 0);    //取消对 _texturesHandle 这个纹理操作
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -151,7 +151,6 @@ GLfloat ColorConversion601FullRangeDefault[] = {
      特别注意：指定的视图窗口大小要与创建输出纹理相同。
      */
     glViewport(0, 0, (GLsizei)_width, (GLsizei)_height);
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer); //绑定当前缓冲区
     glUseProgram(_programHandle);
     
     GLfloat imageVertex[] = {
@@ -188,6 +187,7 @@ GLfloat ColorConversion601FullRangeDefault[] = {
     int UVtexSampler = glGetUniformLocation(_programHandle, "UVtexSampler");    //获取 GLSL 里的 "UVtexSampler" 变量
     glUniform1i(UVtexSampler, 1); //将 GL_TEXTURE1 纹理单元赋值到 UVtexSampler
     
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer); //绑定当前缓冲区
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);  //将纹理渲染到帧缓冲 Framebuffers
     glBindTexture(GL_TEXTURE_2D, 0);    //取消对 _texturesHandle 这个纹理操作
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

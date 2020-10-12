@@ -134,7 +134,6 @@
 
 - (void)startRender:(GLuint)inTexturesHandle timingInfo:(CMSampleTimingInfo)timingInfo{
     glViewport(0, 0, (GLsizei)_width, (GLsizei)_height);  //视图窗口的位置
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glUseProgram(_programHandle);
     
     GLfloat imageVertex[] = {
@@ -163,6 +162,7 @@
     int texSampler = glGetUniformLocation(_programHandle, "texSampler");
     glUniform1i(texSampler, 0);
     
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glFinish(); //等待纹理渲染完毕
     glBindTexture(GL_TEXTURE_2D, 0);

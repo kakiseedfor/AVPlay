@@ -92,20 +92,20 @@
     _success = YES;
 //    glBindTexture(GL_TEXTURE_2D, 0);
 //    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
 /*
  以下的调用顺序非常严格：
- 1、将需要操作的context绑定到OpenGL(即启用哪个context与OpenGL进行连接)
+ 1、将需要操作的glContext绑定到OpenGL(即启用哪个glContext与OpenGL进行连接)
  2、设置OpenGL纹理坐标
- 3、将需要操作的Framebuffer绑定到Render Pipe(即需要操作哪个Framebuffer)
- 4、执行GLSL程序，将纹理绘制到Framebuffer
+ 3、使用GLSL程序
+ 4、将需要操作的Framebuffer绑定到Render Pipe(即需要操作哪个Framebuffer)，将纹理绘制到Framebuffer
  5、将需要操作的Renderbuffer绑定到Render Pipe(即需要操作哪个Renderbuffer)
- 6、context将Framebuffer的内容交换到Renderbuffer
+ 6、glContext将Framebuffer的内容交换到Renderbuffer
  */
 - (void)renderFrame:(GLuint)inTexturesHandle aspectRatio:(CGFloat)aspectRatio{
     glViewport(0, 0, _width, _height);
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     
     glUseProgram(_programHandle);
     //图片物体坐标度，按原图行缩小 1/2。
@@ -150,6 +150,7 @@
     int texSampler = glGetUniformLocation(_programHandle, "texSampler");    //获取 GLSL 里的 "texSampler" 变量
     glUniform1i(texSampler, 0); //将 GL_TEXTURE0 纹理单元赋值到 texSampler
     
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);  //将纹理渲染到帧缓冲 Framebuffers
     glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
     

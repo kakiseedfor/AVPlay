@@ -124,7 +124,6 @@
     [self fillInTextures:videoFrame];
     
     glViewport(0, 0, _width, _height);  //视图窗口的位置
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glUseProgram(_programHandle);   //使用之前必须先指定帧缓冲区
     
     //纹理占据整个视图窗口
@@ -186,10 +185,11 @@
     glUniform1i(VtexSampler, 2); //将 GL_TEXTURE2 纹理单元赋值到 VtexSampler
     
     /*
-     @mode 指定几何图元的绘制方式(以三角形绘制，估计是4维向量)
-     @first 指定开始向量的开始点
-     @count 按多少维度读取
+     @mode 指定几何图元的绘制方式(以三角形绘制)
+     @first 从哪个顶点开始
+     @count 顶点数量
      */
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);  //将纹理渲染到帧缓冲 Framebuffers
     glBindTexture(GL_TEXTURE_2D, 0);    //取消对 _texturesHandle 这个纹理操作
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
