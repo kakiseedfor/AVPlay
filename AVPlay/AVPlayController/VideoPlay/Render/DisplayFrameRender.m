@@ -133,10 +133,10 @@
      需转换成对应的计算机坐标
      */
     GLfloat texturesVertex[] = {
-        0.f, 0.f + aspectRatio,
-        1.f, 0.f + aspectRatio,
-        0.f, 1.f - aspectRatio,
-        1.f, 1.f - aspectRatio,
+        0.f + aspectRatio, 0.f + aspectRatio,
+        1.f - aspectRatio, 0.f + aspectRatio,
+        0.f + aspectRatio, 1.f - aspectRatio,
+        1.f - aspectRatio, 1.f - aspectRatio,
     };
     int textCoordinate = glGetAttribLocation(_programHandle, "textCoordinate");
     glVertexAttribPointer(textCoordinate, 2, GL_FLOAT, GL_FALSE, 0, texturesVertex);
